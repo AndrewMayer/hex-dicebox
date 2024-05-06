@@ -52,7 +52,7 @@ peg_angle = 60;
 // Import the STL file
 module import_stl() {
     mirror([0,1,0]) {
-			import("LichDCCLogoA.svg_2mm.stl", convexity=10);
+			import("./Assets/LichDCCLogoA.svg_2mm.stl", convexity=10);
 		}
 }
 
