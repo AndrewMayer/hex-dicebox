@@ -1,12 +1,6 @@
 // Position the lid based on the variable (1 over the top, 2 on the side)
 lid_position = 2;  // Change to 1 or 2 to position the lid
 
-// Position the pegs based on the variable (1 on the lid, 2 on the main tray)
-peg_position = 2;  // Change to 1 or 2 to position the pegs (1 = on the lid, 2 = on the main tray)
-
-// Total lid height
-total_lid_height = 9;  // Adjust as needed
-
 // Dice dimensions
 d30_size = 30;
 d24_size = 26;
@@ -33,7 +27,7 @@ tray_width = tray_outer_radius * 2;
 
 // Lid dimensions
 lid_lip_depth = 6; // Depth of the lid lip
-lid_height = total_lid_height - lid_lip_depth; // Height of the lid above the lip
+lid_height = 3; // Height of the lid above the lip
 lid_wall_thickness = 12;
 
 // Magnet dimensions
@@ -45,8 +39,8 @@ peg_diameter = 6; // Slightly reduced peg diameter for better fit
 peg_height = 2;
 
 // Peg hole dimensions
-peg_hole_diameter = peg_diameter + 0.6; // Slightly larger than peg diameter for easier fit
-peg_hole_height = peg_height + 0.6; // Slightly larger than peg diameter for easier fit
+peg_hole_diameter = peg_diameter+.6; // Slightly larger than peg diameter for easier fit
+peg_hole_height = peg_height+.6; // Slightly larger than peg diameter for easier fit
 
 // Magnet and peg hole offset from the outer edge
 hole_offset = 4;
@@ -58,8 +52,8 @@ peg_angle = 60;
 // Import the STL file
 module import_stl() {
     mirror([0,1,0]) {
-        import("./Assets/LichDCCLogoA.svg_2mm.stl", convexity=10);
-    }
+			import("LichDCCLogoA.svg_2mm.stl", convexity=10);
+		}
 }
 
 // Magnet hole positions in the box walls
@@ -69,10 +63,13 @@ module box_magnet_holes(hole_height) {
   }
 }
 
+// Peg and magnet hole radial position calculation
+hole_radial_position = tray_outer_radius - box_wall_thickness + hole_offset;
+
 // Peg hole positions in the box walls
 module box_peg_holes(hole_height) {
   for (i = [0:2]) {
-    rotate([0,0,i*(360/3)+peg_angle]) translate([tray_outer_radius-box_wall_thickness+hole_offset,0,hole_height]) cylinder(h=peg_hole_height, r=peg_hole_diameter/2, $fn=30);
+    rotate([0,0,i*(360/3)+peg_angle]) translate([hole_radial_position,0,hole_height]) cylinder(h=peg_hole_height, r=peg_hole_diameter/2, $fn=30);
   }
 }
 
@@ -84,14 +81,7 @@ module lid_magnet_holes() {
 // Pegs on the lid
 module lid_pegs() {
   for (i = [0:2]) {
-    rotate([0,0,i*(360/3)+peg_angle]) translate([hole_offset,0,lid_height]) cylinder(h=peg_height, r=peg_diameter/2, $fn=30);
-  }
-}
-
-// Pegs on the main tray
-module tray_pegs() {
-  for (i = [0:2]) {
-    rotate([0,0,i*(360/3)+peg_angle]) translate([tray_outer_radius-box_wall_thickness+hole_offset,0,tray_base_thickness]) cylinder(h=peg_height, r=peg_diameter/2, $fn=30);
+    rotate([0,0,i*(360/3)+peg_angle]) translate([hole_radial_position,0,lid_height]) cylinder(h=peg_height, r=peg_diameter/2, $fn=30);
   }
 }
 
@@ -105,12 +95,9 @@ module lid_base() {
     cylinder(h=lid_height + 1, r=tray_outer_radius - lid_wall_thickness, $fn=6); // Maintaining hexagonal shape
     // Include magnet holes
     lid_magnet_holes();
-    // Include pegs on the lid if pegs are positioned here
-    if (peg_position == 1) {
-        lid_pegs();
-    }
+      }
   }
-}
+
 
 // D30 space
 module d30_space() {
@@ -142,16 +129,14 @@ module dice_tray() {
     
     // Magnet and peg holes
     box_magnet_holes(tray_height-magnet_height/2);
-    // Include peg holes on the main tray if pegs are positioned here
-    if (peg_position == 2) {
-        box_peg_holes(tray_base_thickness);
-    }
+    box_peg_holes(tray_height-peg_hole_height);
   }
 }
 
 // Tray lid
 module tray_lid() {
   lid_base();
+  translate([0,0,lid_lip_depth]) lid_pegs();
 }
 
 module combined_lid() {
